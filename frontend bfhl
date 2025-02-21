@@ -1,0 +1,56 @@
+import { useState } from "react";
+
+export default function Home() {
+  const [jsonInput, setJsonInput] = useState('{"data": ["A","C","z"]}');
+  const [response, setResponse] = useState(null);
+  const [selectedFilters, setSelectedFilters] = useState([]);
+  
+  const handleSubmit = async () => {
+    try {
+      const parsedInput = JSON.parse(jsonInput);
+      const res = await fetch("https://your-backend-url.herokuapp.com/bfhl", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(parsedInput)
+      });
+      const data = await res.json();
+      setResponse(data);
+    } catch (error) {
+      alert("Invalid JSON or API error");
+    }
+  };
+  
+  const handleFilterChange = (event) => {
+    const value = event.target.value;
+    setSelectedFilters((prev) => prev.includes(value) ? prev.filter(f => f !== value) : [...prev, value]);
+  };
+  
+  const getFilteredResponse = () => {
+    if (!response) return null;
+    let filteredData = {};
+    if (selectedFilters.includes("numbers")) filteredData.numbers = response.numbers;
+    if (selectedFilters.includes("alphabets")) filteredData.alphabets = response.alphabets;
+    if (selectedFilters.includes("highest_alphabet")) filteredData.highest_alphabet = response.highest_alphabet;
+    return JSON.stringify(filteredData, null, 2);
+  };
+  
+  return (
+    <div>
+      <h1>ABCD123</h1>
+      <textarea value={jsonInput} onChange={(e) => setJsonInput(e.target.value)} rows={4} cols={50} />
+      <button onClick={handleSubmit}>Submit</button>
+      <div>
+        <label>
+          <input type="checkbox" value="numbers" onChange={handleFilterChange} /> Numbers
+        </label>
+        <label>
+          <input type="checkbox" value="alphabets" onChange={handleFilterChange} /> Alphabets
+        </label>
+        <label>
+          <input type="checkbox" value="highest_alphabet" onChange={handleFilterChange} /> Highest Alphabet
+        </label>
+      </div>
+      <pre>{getFilteredResponse()}</pre>
+    </div>
+  );
+}
